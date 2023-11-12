@@ -30,8 +30,7 @@ public class Main extends HttpServlet {
         engine = new TemplateEngine();
 
         FileTemplateResolver resolver = new FileTemplateResolver();
-        resolver.setPrefix("C:/Users/Denis/IdeaProjects/TestTemplet/templates/");
-//        resolver.setPrefix("./templates/");
+        resolver.setPrefix("src/main/resources/templates/");
         resolver.setSuffix(".html");
         resolver.setTemplateMode("HTML5");
         resolver.setOrder(engine.getTemplateResolvers().size());
@@ -73,13 +72,12 @@ public class Main extends HttpServlet {
             params.put(keyValue.getKey(), keyValue.getValue()[0]);
         }
 
-            Context simpleContext = new Context(
-                    request.getLocale(),
-                    Map.of("timezone", timeZone.getID().replaceAll("GMT", "UTC"), "queryParams", params, "currentTime", currentTime.replaceAll("GMT", "UTC"))
-            );
-            engine.process("test", simpleContext, response.getWriter());
+        Context simpleContext = new Context(
+                request.getLocale(),
+                Map.of("timezone", timeZone.getID().replaceAll("GMT", "UTC"), "queryParams", params, "currentTime", currentTime.replaceAll("GMT", "UTC"))
+        );
 
-
+        engine.process("test", simpleContext, response.getWriter());
         response.getWriter().close();
     }
 
