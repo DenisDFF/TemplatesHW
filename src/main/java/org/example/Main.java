@@ -30,7 +30,8 @@ public class Main extends HttpServlet {
         engine = new TemplateEngine();
 
         FileTemplateResolver resolver = new FileTemplateResolver();
-        resolver.setPrefix("C:/Users/Denis/IdeaProjects/TestTemplet/templates");
+        resolver.setPrefix("C:/Users/Denis/IdeaProjects/TestTemplet/templates/");
+//        resolver.setPrefix("./templates/");
         resolver.setSuffix(".html");
         resolver.setTemplateMode("HTML5");
         resolver.setOrder(engine.getTemplateResolvers().size());
@@ -39,6 +40,7 @@ public class Main extends HttpServlet {
     }
 
     protected void doGet (HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/html");
         String timezoneParam = request.getParameter("timezone");
         TimeZone timeZone;
         String lastTimezone = getLastTimezoneFromCookie(request);
@@ -55,27 +57,14 @@ public class Main extends HttpServlet {
             timeZone = TimeZone.getTimeZone(timezoneParam);
             saveToCookie(response, timezoneParam);
         } else if (lastTimezone != null && !lastTimezone.isEmpty()) {
-            // Якщо параметр timezone в запиті не передано, але є у cookies, використовуємо його
             timeZone = TimeZone.getTimeZone(lastTimezone);
         } else {
-            // Якщо немає параметра timezone у запиті та у cookies, використовуємо UTC
             timeZone = TimeZone.getTimeZone("UTC");
         }
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
         dateFormat.setTimeZone(timeZone);
         String currentTime = dateFormat.format(new Date());
-
-        response.setContentType("text/html");
-
-        PrintWriter out = response.getWriter();
-
-        if (timeZone != null) {
-            out.println("<html><body><h2>Поточний час (" + timeZone.getID().replaceAll("GMT", "UTC") + "): " + currentTime.replaceAll("GMT", "UTC") + "</h2></body></html>");
-        } else {
-            out.println("<html><body><h2>Поточний час (" + timeZone.getID() + "): " + currentTime + "</h2></body></html>");
-        }
-        out.println("<meta http-equiv=\"refresh\" content=\"5\">");
 
         Map<String, String[]> parameterMap = request.getParameterMap();
 
@@ -84,12 +73,13 @@ public class Main extends HttpServlet {
             params.put(keyValue.getKey(), keyValue.getValue()[0]);
         }
 
-        Context simpleContext = new Context(
-                request.getLocale(),
-                Map.of("queryParams", params)
-        );
+            Context simpleContext = new Context(
+                    request.getLocale(),
+                    Map.of("timezone", timeZone.getID().replaceAll("GMT", "UTC"), "queryParams", params, "currentTime", currentTime.replaceAll("GMT", "UTC"))
+            );
+            engine.process("test", simpleContext, response.getWriter());
 
-        engine.process("test", simpleContext, response.getWriter());
+
         response.getWriter().close();
     }
 
